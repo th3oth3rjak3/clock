@@ -44,7 +44,6 @@ pub fn main() anyerror!void {
 
 pub fn getCurrentTimeString(allocator: std.mem.Allocator, tz: *zeit.TimeZone, fmt: []const u8) ![]u8 {
     var buffer = std.ArrayList(u8).init(allocator);
-    defer buffer.deinit();
     const writer = buffer.writer();
     const now = try zeit.instant(.{});
     const dt = now.in(tz).time();
