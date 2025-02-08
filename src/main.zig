@@ -2,9 +2,11 @@ const std = @import("std");
 const zeit = @import("zeit");
 const rl = @import("raylib");
 
+const fontData: ?[]const u8 = @embedFile("resources/B612Mono-Bold.ttf");
+
 pub fn main() anyerror!void {
-    const screenWidth = 200;
-    const screenHeight = 100;
+    const screenWidth = 220;
+    const screenHeight = 75;
     rl.initWindow(screenWidth, screenHeight, "Clock");
     defer rl.closeWindow();
     rl.setTargetFPS(5);
@@ -14,8 +16,8 @@ pub fn main() anyerror!void {
     const allocator = gpa.allocator();
 
     // Pre-allocate fixed buffers for text
-    var time_buf: [100:0]u8 = undefined;
-    var date_buf: [100:0]u8 = undefined;
+    var time_buf: [16:0]u8 = undefined;
+    var date_buf: [11:0]u8 = undefined;
 
     // Get environment map once, outside the loop
     var env = try std.process.getEnvMap(allocator);
@@ -24,6 +26,10 @@ pub fn main() anyerror!void {
     // Initialize timezone once
     var tz = try zeit.local(allocator, &env);
     defer tz.deinit();
+
+    // Load custom font (replace the path with your own font file)
+    const font = try rl.loadFontFromMemory(".ttf", fontData, 20, null);
+    defer rl.unloadFont(font);
 
     while (!rl.windowShouldClose()) {
         const date = try getCurrentTimeString(allocator, &tz, "01-02-2006");
@@ -37,8 +43,10 @@ pub fn main() anyerror!void {
         defer rl.endDrawing();
 
         rl.clearBackground(rl.Color.fromHSV(234.0, 0.0, 0.13));
-        rl.drawText(time_message, 20, 20, 20, rl.Color.light_gray);
-        rl.drawText(date_message, 45, 60, 20, rl.Color.light_gray);
+
+        // Use custom font to draw the text
+        rl.drawTextEx(font, time_message, rl.Vector2{ .x = 20, .y = 15 }, 20.0, 2.0, rl.Color.light_gray);
+        rl.drawTextEx(font, date_message, rl.Vector2{ .x = 45, .y = 45 }, 20.0, 2.0, rl.Color.light_gray);
     }
 }
 
